@@ -36,6 +36,11 @@ class LevitonDecoraSmartPlatform {
     api.on('didFinishLaunching', async () => {
       this.log.debug('didFinishLaunching')
       const { devices, token } = await this.initialize(config)
+      if (token) {
+        this.token = token
+        this.accessories.forEach((acc) => (acc.context.token = token))
+        this.api.updatePlatformAccessories(this.accessories)
+      }
       const excludedModels = (config.excludeModels || []).map((name) => name.toUpperCase())
       const excludedSerials = (config.excludeSerials || []).map((name) => name.toUpperCase())
       if (Array.isArray(devices) && devices.length > 0) {
@@ -158,7 +163,7 @@ class LevitonDecoraSmartPlatform {
     return function (callback) {
       return Leviton.getIotSwitch({
         switchID: device.id,
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.debug(`onGetPower: ${device.name} ${res.power}`)
@@ -177,7 +182,7 @@ class LevitonDecoraSmartPlatform {
       return Leviton.putIotSwitch({
         switchID: device.id,
         power: value ? 'ON' : 'OFF',
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.info(`onSetPower: ${device.name} ${res.power}`)
@@ -195,7 +200,7 @@ class LevitonDecoraSmartPlatform {
     return function (callback) {
       return Leviton.getIotSwitch({
         switchID: device.id,
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.debug(`onGetBrightness: ${device.name} @ ${res.brightness}%`)
@@ -214,7 +219,7 @@ class LevitonDecoraSmartPlatform {
       return Leviton.putIotSwitch({
         switchID: device.id,
         brightness,
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.info(`onSetBrightness: ${device.name} @ ${res.brightness}%`)
@@ -232,7 +237,7 @@ class LevitonDecoraSmartPlatform {
     return function (callback) {
       return Leviton.getIotSwitch({
         switchID: device.id,
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.debug(`onGetRotationSpeed: ${device.name} @ ${res.brightness}%`)
@@ -251,7 +256,7 @@ class LevitonDecoraSmartPlatform {
       return Leviton.putIotSwitch({
         switchID: device.id,
         brightness,
-        token,
+        token: this.token || token,
       })
         .then((res) => {
           this.log.info(`onSetRotationSpeed: ${device.name} @ ${res.brightness}%`)
